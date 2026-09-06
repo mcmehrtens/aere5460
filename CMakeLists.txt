@@ -12,7 +12,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_library(default_flags INTERFACE)
-target_compile_options(default_flags INTERFACE -Wall -Wextra -Wpedantic -Wconversion -Wshadow)
+target_compile_options(default_flags INTERFACE -Wall -Wextra -Wpedantic -Wconversion -Wshadow -Wold-style-cast -Wdouble-promotion)
 
 enable_testing()
 
