@@ -1,0 +1,7 @@
+build/
+.venv/
+**/data/
+**/figures/
+.DS_Store
+__pycache__/
+homeworks/*.pdf
