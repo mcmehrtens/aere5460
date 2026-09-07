@@ -43,6 +43,10 @@ int main() {
       const double dt = (t1 - t0) / (static_cast<double>(N) - 1);
       const auto output_path =
           base_output_path / std::format("ex2a_rk2_sigma{}_N{}.csv", sigma, N);
+      const auto comment =
+          std::format("method={} sigma={} omega={} t0={} t1={} N={} dt={}",
+                      "rk2", sigma, omega, t0, t1, N, dt);
+
       std::println("=== RUN SUMMARY ===");
       std::println("output_path = {}", output_path.string());
       std::println("𝜎 = {}", sigma);
@@ -52,9 +56,6 @@ int main() {
                    sol.u[N - 1][1]);
       std::println();
 
-      const auto comment =
-          std::format("method={} sigma={} omega={} t0={} t1={} N={} dt={}",
-                      "rk2", sigma, omega, t0, t1, N, dt);
       num::write_output(output_path, comment, cols, sol);
     }
   }
