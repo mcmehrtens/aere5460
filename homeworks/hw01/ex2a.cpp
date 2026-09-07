@@ -1,9 +1,15 @@
+#include "num/csv.hpp"
 #include "num/ode.hpp"
 #include <array>
 #include <cstddef>
+#include <filesystem>
+#include <format>
 #include <print>
+#include <string_view>
 
 int main() {
+  const auto base_output_path = std::filesystem::path{HW01_SOURCE_DIR} / "data";
+
   const std::array<double, 2> sigma_array = {0.0, 0.5};
   const double omega = 1.0;
   const double t0 = 0.0;
@@ -22,6 +28,8 @@ int main() {
   std::println("tₑ = {}", t1);
   std::println();
 
+  constexpr std::array<std::string_view, 3> cols{"t", "Y", "Ydot"};
+
   for (double sigma : sigma_array) {
     for (std::size_t N : N_array) {
       const auto rhs = [sigma, omega](double,
@@ -32,13 +40,22 @@ int main() {
 
       const auto sol = num::integrate(rk2, rhs, u0, t0, t1, N);
 
+      const double dt = (t1 - t0) / (static_cast<double>(N) - 1);
+      const auto output_path =
+          base_output_path / std::format("ex2a_rk2_sigma{}_N{}.csv", sigma, N);
       std::println("=== RUN SUMMARY ===");
+      std::println("output_path = {}", output_path.string());
       std::println("𝜎 = {}", sigma);
       std::println("N = {}", N);
-      std::println("𝛥t = {}", (t1 - t0) / (static_cast<double>(N) - 1));
+      std::println("𝛥t = {}", dt);
       std::println("(Y(tₑ), Ẏ(tₑ)) = ({}, {})", sol.u[N - 1][0],
                    sol.u[N - 1][1]);
       std::println();
+
+      const auto comment =
+          std::format("method={} sigma={} omega={} t0={} t1={} N={} dt={}",
+                      "rk2", sigma, omega, t0, t1, N, dt);
+      num::write_output(output_path, comment, cols, sol);
     }
   }
 }
