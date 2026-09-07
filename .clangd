@@ -1,0 +1,6 @@
+CompileFlags:
+  CompilationDatabase: build/release
+Diagnostics:
+  UnusedIncludes: Strict
+  MissingIncludes: Strict
+
