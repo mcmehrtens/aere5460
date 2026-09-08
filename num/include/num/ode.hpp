@@ -26,7 +26,7 @@ State<Dim> axpy(double a, const State<Dim> &x, const State<Dim> &y) {
   return result;
 }
 
-/// Integrate a single ODE step with 2nd-order Runge-Kutta (midpoint variant).
+/// Integrate a single ODE step with 2nd-order Runge–Kutta (midpoint variant).
 /// This method requires two evaluations of RHS per step.
 ///
 /// @tparam Dim The number of state variables.

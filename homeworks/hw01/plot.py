@@ -1,12 +1,13 @@
 """AERE 5460, Homework 1.
 
-Plots the deliverables for Exercises 2-3. Writes
+Plots the deliverables for Exercises 2–3. Writes
 plots to the `figures` directory relative to this source file.
 """
 
 from dataclasses import dataclass
 from pathlib import Path
 
+import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
 
@@ -77,11 +78,100 @@ def exact(
 
 
 def plot_ex2a():
-    return
+    FIGURES.mkdir(exist_ok=True)
+    runs = [load(p) for p in sorted(DATA.glob("ex2a_*.csv"))]
+    groups: dict[float, list[Run]] = {}
+    for run in runs:
+        groups.setdefault(float(run.meta["sigma"]), []).append(run)
+    for group in groups.values():
+        group.sort(key=lambda r: r.meta["N"])
+    for sigma, group in groups.items():
+        omega = float(group[0].meta["omega"])
+        fig, (ax_y, ax_err) = plt.subplots(2, 1, sharex=True, figsize=(8, 6))
+        t_fine = np.linspace(
+            float(group[0].meta["t0"]), float(group[0].meta["t1"]), 1000
+        )
+        for run in group:
+            ax_y.plot(run.t, run.y, "-", label=f"N = {int(run.meta['N'])}")
+            ax_err.semilogy(
+                run.t,
+                np.abs(run.y - exact(run.t, sigma, omega)),
+                "-",
+                label=f"N = {int(run.meta['N'])}",
+            )
+        ax_y.plot(
+            t_fine,
+            exact(t_fine, sigma, omega),
+            "k--",
+            label="exact",
+        )
+        ax_err.set_yscale("log", nonpositive="mask")
+        ax_y.set_ylim(-2, 2)
+        ax_y.set_ylabel(r"$Y$")
+        ax_err.set_ylabel(r"$|Y-Y_\mathrm{exact}|$")
+        ax_err.set_xlabel(r"$t$")
+        ax_y.set_title(
+            rf"damped oscillator, $\sigma={sigma}$, $\omega={omega}$"
+        )
+        ax_y.legend(loc="lower right")
+        ax_err.legend()
+        ax_y.grid(True, linestyle=":", alpha=0.5)
+        ax_err.grid(True, linestyle=":", alpha=0.5)
+        fig.tight_layout()
+        fig.savefig(
+            FIGURES / f"ex2a_rk2_sigma{sigma}.png",
+            dpi=300,
+            bbox_inches="tight",
+            facecolor="white",
+        )
+        plt.close(fig)
+
+
+def plot_ex2b():
+    FIGURES.mkdir(exist_ok=True)
+    runs = [load(p) for p in sorted(DATA.glob("ex2b_*.csv"))]
+    groups: dict[float, list[Run]] = {}
+    for run in runs:
+        groups.setdefault(float(run.meta["B"]), []).append(run)
+    for group in groups.values():
+        group.sort(key=lambda r: r.meta["N"])
+    for B, group in groups.items():  # noqa: N806
+        ref = group[-1]
+        fig, (ax_y, ax_err) = plt.subplots(2, 1, sharex=True, figsize=(8, 6))
+        for run in group[:-1]:
+            ax_y.plot(run.t, run.y, "-", label=f"N = {int(run.meta['N'])}")
+            err = np.abs(run.y - np.interp(run.t, ref.t, ref.y))
+            ok = np.isfinite(err) & (err < 10)
+            ax_err.semilogy(
+                run.t[ok],
+                err[ok],
+                "-",
+                label=f"N = {int(run.meta['N'])}",
+            )
+        ax_y.plot(ref.t, ref.y, "k--", label=f"N = {int(ref.meta['N'])}")
+        ax_err.set_yscale("log", nonpositive="mask")
+        ax_y.set_ylim(-2, 2)
+        ax_y.set_ylabel(r"$Y$")
+        ax_err.set_ylabel(rf"$|Y-Y_{{N={int(ref.meta['N'])}}}|$")
+        ax_err.set_xlabel(r"$t$")
+        ax_y.set_title(rf"nonlinear spring (without damping), $B={B}$")
+        ax_y.legend()
+        ax_err.legend()
+        ax_y.grid(True, linestyle=":", alpha=0.5)
+        ax_err.grid(True, linestyle=":", alpha=0.5)
+        fig.tight_layout()
+        fig.savefig(
+            FIGURES / f"ex2b_rk2_B{B}.png",
+            dpi=300,
+            bbox_inches="tight",
+            facecolor="white",
+        )
+        plt.close(fig)
 
 
 def main():
     plot_ex2a()
+    plot_ex2b()
 
 
 if __name__ == "__main__":
