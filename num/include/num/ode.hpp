@@ -95,6 +95,15 @@ Solution<Dim> integrate(Stepper step, RHS rhs, const State<Dim> &u0, double t0,
 /// Adams–Bashforth. `dt` for each step is computed as `(t1 - t0) / (n_points -
 /// 1)`. Uses 2nd-order Runge–Kutta for startup to maintain 2nd-order accuracy.
 ///
+/// AB2 evolves as:
+///
+/// \f[
+///   u_{n} = u_{n-1} + (\Delta t / 2) (3 RHS(n - 1) - RHS(n - 2))
+/// \f]
+///
+/// By caching the value of RHS(n - 1), only one RHS evaluation is required per
+/// step.
+///
 /// @tparam Dim       The number of state variables.
 /// @tparam RHS       The RHS function with expected signature `State<Dim>
 ///                   RHS(double t, const State<Dim> &u)`.
