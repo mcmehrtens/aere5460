@@ -90,4 +90,47 @@ Solution<Dim> integrate(Stepper step, RHS rhs, const State<Dim> &u0, double t0,
   return sol;
 }
 
+/// Integrate `Dim` ODEs with RHS `RHS` from time `t0` to time `t1` with
+/// `n_points - 1` steps and initial conditions `u0` using 2nd-order
+/// Adams–Bashforth. `dt` for each step is computed as `(t1 - t0) / (n_points -
+/// 1)`. Uses 2nd-order Runge–Kutta for startup to maintain 2nd-order accuracy.
+///
+/// @tparam Dim       The number of state variables.
+/// @tparam RHS       The RHS function with expected signature `State<Dim>
+///                   RHS(double t, const State<Dim> &u)`.
+/// @param  rhs       The right-hand-side callable evaluating du/dt.
+/// @param  u0        The initial conditions, i.e., u(t0).
+/// @param  t0        The initial simulation time.
+/// @param  t1        The final simulation time.
+/// @param  n_points  The number of time points, including `t0` and `t1`; at
+///                   least 2.
+/// @return           The parallel solution vectors for the time `t` and the
+///                   state variables `u` at each time `t`.
+template <std::size_t Dim, typename RHS>
+Solution<Dim> ab2(RHS rhs, const State<Dim> &u0, double t0, double t1,
+                  std::size_t n_points) {
+  assert(n_points >= 2);
+
+  const double dt = (t1 - t0) / static_cast<double>(n_points - 1);
+  Solution<Dim> sol{std::vector<double>(n_points),
+                    std::vector<State<Dim>>(n_points)};
+  sol.t[0] = t0;
+  sol.u[0] = u0;
+
+  // startup with RK2
+  sol.t[1] = t0 + dt;
+  sol.u[1] = rk2_step(rhs, sol.t[0], sol.u[0], dt);
+
+  // RK2 technically already computed this, but doesn't expose it
+  State<Dim> rhs_prev = rhs(sol.t[0], sol.u[0]);
+  for (std::size_t n = 2; n < n_points; ++n) {
+    sol.t[n] = t0 + static_cast<double>(n) * dt;
+    const State<Dim> rhs_current = rhs(sol.t[n - 1], sol.u[n - 1]);
+    sol.u[n] =
+        axpy(1.5 * dt, rhs_current, axpy(-0.5 * dt, rhs_prev, sol.u[n - 1]));
+    rhs_prev = rhs_current;
+  }
+  return sol;
+}
+
 } // namespace num
