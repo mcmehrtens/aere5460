@@ -1,3 +1,11 @@
+/// @file
+///
+/// AERE 5460, Homework 1, Exercise 2a. Solves a damped oscillator Y'' + σY' +
+/// ω²Y = 0 with 2nd-order Runge-Kutta (midpoint variant). Solves with sigma
+/// 0.0, 0.5 and N 21, 101, 301. Generates a solution CSV
+/// (`ex2a_rk2_sigma<σ>_N<N>.csv`) for each run and puts it in the `data` folder
+/// relative to this source file.
+
 #include "num/csv.hpp"
 #include "num/ode.hpp"
 #include <array>
