@@ -18,3 +18,4 @@ enable_testing()
 
 add_subdirectory(num)
 add_subdirectory(homeworks/hw01)
+add_subdirectory(homeworks/hw02)

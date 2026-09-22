@@ -16,7 +16,7 @@
 #include <string_view>
 
 int main() {
-  const auto base_output_path = std::filesystem::path{HW01_SOURCE_DIR} / "data";
+  const auto base_output_path = std::filesystem::path{HW_SOURCE_DIR} / "data";
 
   const std::array<double, 4> B_array = {0.2, 0.6, 0.9, 0.999};
   const double t0 = 0.0;
