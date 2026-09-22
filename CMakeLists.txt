@@ -17,5 +17,6 @@ target_compile_options(default_flags INTERFACE -Wall -Wextra -Wpedantic -Wconver
 enable_testing()
 
 add_subdirectory(num)
+add_subdirectory(num/tests)
 add_subdirectory(homeworks/hw01)
 add_subdirectory(homeworks/hw02)
