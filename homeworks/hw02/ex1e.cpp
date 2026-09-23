@@ -1,9 +1,9 @@
 /// @file
 ///
-/// AERE 5460, Homework 2, Exercise 1b. Solves the heat fin equation
-/// \f$\frac{\mathrm{d}^2T}{\mathrm{d}x^2}=MT\f$ for \f$M=1,5,9\f$ with boundary
-/// conditions \f$T(0)=1\f$ and \f$T(1)=0\f$. Generates a solution CSV
-/// (`ex1b_M<M>_N<N>.csv`) for each run and puts it in the `data` folder
+/// AERE 5460, Homework 2, Exercise 1e. Solves the heat fin equation
+/// \f$\frac{\mathrm{d}^2T}{\mathrm{d}x^2}=M(1+20x^2)T\f$ for \f$M=1,5,9\f$ with
+/// boundary conditions \f$T(0)=1\f$ and \f$T'(1)=0\f$. Generates a solution CSV
+/// (`ex1e_M<M>_N<N>.csv`) for each run and puts it in the `data` folder
 /// relative to this source file.
 
 #include "num/csv.hpp"
@@ -30,7 +30,8 @@ int main() {
       std::vector<double> x(N), b(N), d(N), a(N), r(N);
 
       const double h = 1.0 / (static_cast<double>(N) - 1.0);
-      const double d_val = -(2.0 + M * h * h);
+      const double d_val0 = -2.0 - M * h * h;
+      const double d_val1 = -20.0 * M * h * h;
 
       // i = 0
       d[0] = 1.0;
@@ -40,28 +41,28 @@ int main() {
       for (std::size_t i = 1; i < N - 1; ++i) {
         x[i] = h * static_cast<double>(i);
         b[i] = 1.0;
-        d[i] = d_val;
+        d[i] = d_val0 + d_val1 * x[i] * x[i];
         a[i] = 1.0;
       }
 
       // i = N - 1
-      d[N - 1] = 1.0;
       x[N - 1] = 1.0;
+      b[N - 1] = 2.0;
+      d[N - 1] = d_val0 + d_val1 * x[N - 1] * x[N - 1];
 
       const auto T = num::tridiag(b, d, a, r);
 
-      const double flux = -(T[N - 3] - 4 * T[N - 2] + 3 * T[N - 1]) / (2.0 * h);
-
       const auto output_path =
-          base_output_path / std::format("ex1b_M{}_N{}.csv", M, N);
-      const auto comment = std::format("M={} N={} h={} flux={}", M, N, h, flux);
+          base_output_path / std::format("ex1e_M{}_N{}.csv", M, N);
+      const auto comment =
+          std::format("M={} N={} h={} Tright={}", M, N, h, T[N - 1]);
 
       std::println("=== RUN SUMMARY ===");
       std::println("output_path = {}", output_path.string());
       std::println("M = {}", M);
       std::println("N = {}", N);
       std::println("h = {}", h);
-      std::println("flux = {}", flux);
+      std::println("T(1) = {}", T[N - 1]);
       std::println();
 
       const std::array<std::span<const double>, 2> columns = {x, T};

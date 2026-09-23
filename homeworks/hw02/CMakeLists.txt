@@ -1,4 +1,4 @@
-foreach(ex IN ITEMS ex1b)
+foreach(ex IN ITEMS ex1b ex1c ex1e ex1f)
   add_executable(hw02_${ex} ${ex}.cpp)
   target_compile_definitions(
     hw02_${ex}
@@ -10,8 +10,11 @@ endforeach()
 
 add_custom_target(hw02_run
                   COMMAND hw02_ex1b
-                  # COMMAND uv run plot.py
+                  COMMAND hw02_ex1c
+                  COMMAND hw02_ex1e
+                  COMMAND hw02_ex1f
+                  COMMAND uv run plot.py
                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                   USES_TERMINAL
 )
-add_dependencies(hw02_run hw02_ex1b)
+add_dependencies(hw02_run hw02_ex1b hw02_ex1c hw02_ex1e hw02_ex1f)
