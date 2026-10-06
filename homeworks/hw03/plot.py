@@ -1,7 +1,7 @@
 """AERE 5460, Homework 3.
 
-Plots the deliverables for Exercise 1. Writes plots to the `figures`
-directory relative to this source file.
+Plots the deliverables for Exercises 1 and 2. Writes plots to the
+`figures` directory relative to this source file.
 """
 
 from dataclasses import dataclass
@@ -69,6 +69,15 @@ def load_ex1(alpha: float, kind: str) -> Run:
     names written by the driver.
     """
     return load(DATA / f"ex1_alpha{alpha:.3g}_{kind}.csv")
+
+
+def load_ex2(kind: str) -> Run:
+    """Loads one Exercise 2 CSV.
+
+    `kind` is `profiles` or `history`, matching the file names written
+    by the driver.
+    """
+    return load(DATA / f"ex2_{kind}.csv")
 
 
 def profiles_by(run: Run, prefix: str) -> list[tuple[float, Array]]:
@@ -188,8 +197,63 @@ def plot_ex1() -> None:
     plot_ex1_hT()
 
 
+def plot_ex2_profiles() -> None:
+    """Plots the initial condition and T(x) every 0.01 time units."""
+    run = load_ex2("profiles")
+    x = run.cols["x"]
+    snaps = profiles_by(run, "T_t")
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+    colors = sequential_colors(len(snaps))
+    for (t, T), color in zip(snaps, colors, strict=True):  # noqa: N806
+        label = rf"$t = {t:.2f}$"
+        if t == 0.0:
+            label += " (initial condition)"
+        ax.plot(x, T, "-", color=color, label=label)
+    style(
+        ax,
+        r"$x$",
+        r"$T$",
+        rf"finite volume + RK2, $\kappa = 0.1 + 0.1e^T$, "
+        rf"$N_{{cell}} = {int(run.meta['Ncell'])}$",
+    )
+    save(fig, "ex2_profiles")
+
+
+def plot_ex2_integral() -> None:
+    """Plots the integral of T over the slab vs t.
+
+    The top panel shows I itself; the bottom panel shows its drift
+    I(t) - I(0), which a flat line at 1 can't show.
+    """
+    run = load_ex2("history")
+    t, integral = run.cols["t"], run.cols["I"]
+
+    fig, (ax_i, ax_d) = plt.subplots(2, 1, figsize=(8, 7), sharex=True)
+    ax_i.plot(t, integral, "-", color="#2a78d6")
+    ax_i.set_ylim(0.9, 1.1)
+    ax_i.ticklabel_format(axis="y", useOffset=False)
+    style(
+        ax_i,
+        "",
+        r"$I = \int_0^1 T\,dx$",
+        rf"$I(0) = {integral[0]:.15f}$",
+        legend=False,
+    )
+    ax_d.plot(t, integral - integral[0], "-", color="#2a78d6")
+    style(ax_d, r"$t$", r"$I(t) - I(0)$", "", legend=False)
+    save(fig, "ex2_integral")
+
+
+def plot_ex2() -> None:
+    """Plots the deliverables for Exercise 2."""
+    plot_ex2_profiles()
+    plot_ex2_integral()
+
+
 def main():
     plot_ex1()
+    plot_ex2()
 
 
 if __name__ == "__main__":

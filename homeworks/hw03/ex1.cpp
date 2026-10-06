@@ -40,7 +40,6 @@ int main() {
   constexpr std::array<double, 8> alpha_targets = {0.6, 0.51, 0.5,       0.49,
                                                    0.4, 0.25, 1.0 / 6.0, 0.1};
 
-  // early profiles show how the step at x = 1 evolves near the stability limit
   constexpr std::size_t steps_per_early_snap = 5;
   constexpr std::size_t n_early = 300;
 
