@@ -1,6 +1,6 @@
 """AERE 5460, Homework 3.
 
-Plots the deliverables for Exercises 1 and 2. Writes plots to the
+Plots the deliverables for Exercises 1, 2, and 3. Writes plots to the
 `figures` directory relative to this source file.
 """
 
@@ -22,6 +22,10 @@ ALPHA_EX1 = 0.25
 STABILITY_ALPHAS = (0.6, 0.51, 0.5, 0.49)
 # number of early snapshots drawn in each stability panel
 N_SHOWN = 6
+# the alpha shown in the Exercise 3 profile and hT figures
+ALPHA_EX3 = 1.0
+# the alphas compared in the Exercise 3 large-alpha figure
+LARGE_ALPHAS = (1.0, 10.0, 100.0, 1600.0)
 
 Array = npt.NDArray[np.float64]
 
@@ -78,6 +82,15 @@ def load_ex2(kind: str) -> Run:
     by the driver.
     """
     return load(DATA / f"ex2_{kind}.csv")
+
+
+def load_ex3(alpha: float, kind: str) -> Run:
+    """Loads one Exercise 3 CSV.
+
+    `kind` is `profiles` or `history`, matching the file names written
+    by the driver.
+    """
+    return load(DATA / f"ex3_alpha{alpha:g}_{kind}.csv")
 
 
 def profiles_by(run: Run, prefix: str) -> list[tuple[float, Array]]:
@@ -251,9 +264,76 @@ def plot_ex2() -> None:
     plot_ex2_integral()
 
 
+def plot_ex3_alpha() -> None:
+    """Plots T(x) at every output time for each LARGE_ALPHAS."""
+    fig, axes = plt.subplots(2, 2, figsize=(12, 9), sharey=True)
+    for k, (ax, alpha) in enumerate(zip(axes.flat, LARGE_ALPHAS, strict=True)):
+        run = load_ex3(alpha, "profiles")
+        x = run.cols["x"]
+        snaps = profiles_by(run, "T_t")
+        colors = sequential_colors(len(snaps))
+        for (t, T), color in zip(snaps, colors, strict=True):  # noqa: N806
+            ax.plot(x, T, "-", color=color, label=rf"$t = {t:.2f}$")
+        style(
+            ax,
+            r"$x$",
+            r"$T$",
+            rf"$\alpha = {alpha:g}$, $\Delta t = {run.meta['dt']:g}$",
+            legend=k == 0,
+        )
+    save(fig, "ex3_alpha")
+
+
+def plot_ex3_profiles() -> None:
+    """Plots T(x) at every output time for alpha = ALPHA_EX3."""
+    run = load_ex3(ALPHA_EX3, "profiles")
+    x = run.cols["x"]
+    snaps = profiles_by(run, "T_t")
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+    colors = sequential_colors(len(snaps))
+    for (t, T), color in zip(snaps, colors, strict=True):  # noqa: N806
+        ax.plot(x, T, "-", color=color, label=rf"$t = {t:.2f}$")
+    style(
+        ax,
+        r"$x$",
+        r"$T$",
+        rf"Crank–Nicolson, $\alpha = {ALPHA_EX3:g}$, "
+        rf"$N_x = {int(run.meta['Nx'])}$",
+    )
+    ax.legend(loc="center left", bbox_to_anchor=(1.01, 0.5))
+    save(fig, "ex3_profiles")
+
+
+def plot_ex3_hT() -> None:  # noqa: N802
+    """Plots hT vs t for t > 0.01 at alpha = ALPHA_EX3."""
+    run = load_ex3(ALPHA_EX3, "history")
+    t, hT = run.cols["t"], run.cols["hT"]  # noqa: N806
+    mask = t > 0.01
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.plot(t[mask], hT[mask], "-", color="#2a78d6")
+    style(
+        ax,
+        r"$t$",
+        r"$h_T$",
+        rf"bulk heat transfer coefficient, $\alpha = {ALPHA_EX3:g}$",
+        legend=False,
+    )
+    save(fig, "ex3_hT")
+
+
+def plot_ex3() -> None:
+    """Plots the deliverables for Exercise 3."""
+    plot_ex3_alpha()
+    plot_ex3_profiles()
+    plot_ex3_hT()
+
+
 def main():
     plot_ex1()
     plot_ex2()
+    plot_ex3()
 
 
 if __name__ == "__main__":
